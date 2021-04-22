@@ -132,7 +132,6 @@ class guanyierp
     // 通过结算单设置库存
     public function setStock($data = [], $key = null)
     {
-        var_dump($data);
         return  $this->getTo('gy.erp.stock.count.add', $data, $key);
     }
 
@@ -200,7 +199,7 @@ class guanyierp
         if (!isset($this->data['sessionkey'])) {
             $this->data['sessionkey'] = $this->config['sessionkey'];
         }
-        if (is_null($url)) $url = isset($this->config['url']) && $this->config['url'] ? $this->config['url'] : $this->URL;
+        if (is_null($url)) $url = isset($this->config['url']) && $this->config['url'] ? $this->config['url'] : $this->url;
 
 
         if (!isset($this->data['sign'])) {
