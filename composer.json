@@ -1,0 +1,22 @@
+{
+  "name": "lyhiving/guanyierp",
+  "description": "Guanyi ERP PHP SDK",
+  "keywords": ["ERP","Guanyi"],
+  "homepage": "https://github.com/lyhiving/guanyierp",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "lyhiving",
+      "email": "lyhiving@gmail.com",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=5.4",
+    "ext-gd": "*"
+  },
+  "autoload": {
+    "psr-4": { "lyhiving\\guanyierp\\": "src/" }
+  },
+  "minimum-stability": "dev"
+}
