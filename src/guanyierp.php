@@ -164,7 +164,7 @@ class guanyierp
         if (is_array($item_code)) {
             $data['details'] = $item_code;
         } else {
-            $data['details'] = array(
+            $data['detail_list'] = array(
                 array(
                     'item_code' => $item_code,
                     'qty'   => $qry
