@@ -135,7 +135,7 @@ class guanyierp
         return  $this->getTo('gy.erp.stock.count.add', $data, $key);
     }
 
-    // 获取某个指定商品指定仓库库存
+    // 获取某个指定商品指定仓库库存，不允许负数
     public function setItemStock($warehouse_code, $item_code, $qry, $note = null)
     {
         $data = [];
@@ -154,6 +154,32 @@ class guanyierp
         return $this->setStock($data);
     }
 
+
+    // 调整仓库库存
+    public function adjustItemStock($warehouse_code, $item_code, $qry, $note = null)
+    {
+        $data = [];
+        $data['warehouse_code'] = $warehouse_code;
+        $data['note'] = $note;
+        if (is_array($item_code)) {
+            $data['details'] = $item_code;
+        } else {
+            $data['details'] = array(
+                array(
+                    'item_code' => $item_code,
+                    'qty'   => $qry
+                )
+            );
+        }
+        return $this->adjustStock($data);
+    }
+
+
+    // 通过调整单设置库存
+    public function adjustStock($data = [], $key = null)
+    {
+        return  $this->getTo('gy.erp.stock.adjust.add', $data, $key);
+    }
 
 
     public function sign()
