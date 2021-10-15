@@ -162,7 +162,7 @@ class guanyierp
         $data['warehouse_code'] = $warehouse_code;
         $data['note'] = $note;
         if (is_array($item_code)) {
-            $data['details'] = $item_code;
+            $data['detail_list'] = $item_code;
         } else {
             $data['detail_list'] = array(
                 array(
