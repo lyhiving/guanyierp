@@ -2,27 +2,58 @@
 
 namespace lyhiving\guanyierp;
 
-class guanyierp
+class guanyiweb
 {
     /** 配置文件 */
     public $config = [];
     public $data;
-    public $url = 'https://v2.api.guanyierp.com/rest/erp_open';
+    public $preurl = 'http://v2.guanyierp.com/';
+    public $useragent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36';
     private $_error; //详细代码信息
     private $_errno; //出错代码编号
     public $orgi; //原始数据
     public $total; //内容的总数量
+    public $url;
+    public $path;
 
-    /**
-     *  $config['appkey'] = APPKEY;
-     *  $config['secret'] = SECRET;
-     *  $config['sessionkey'] = SESSIONKEY;
-     */
+
     public function __construct($config = [])
     {
         if ($config) {
-            $this->set('config', $config);
+            $this->config($config);
         }
+    }
+
+    public function config($config){
+        if(!is_array($config)){
+            $_config = []; 
+            $_config['Cookie'] = $config;
+            $config = $_config;
+        }
+        if (!isset($config['User-Agent'])) {
+            $config['User-Agent'] =  $this->useragent;
+        }
+        $this->set('config', $config);
+        return $this;
+    }
+
+    public function initWeb($string)
+    {
+        if(!$string){
+            $this->setErr('WEB参数未配备');
+            return false;
+        }
+        $config = json_decode($string, true);
+        if(isset($config['Cookie'])){
+            $this->config($config);
+        }else{
+            $this->config($string);
+        }
+        $config =  $this->get('config');
+        if(!isset($config['Cookie'])||!$config['Cookie']){
+            return false;
+        }
+        return $this;
     }
 
     /**
@@ -69,7 +100,8 @@ class guanyierp
     public function getTo($method, $data, $filed = null)
     {
         $this->data = $data;
-        $this->data['method'] = $method;
+        $this->path =  $method;
+
         $result = $this->webPost();
         return $this->handler($result, $filed);
     }
@@ -80,117 +112,11 @@ class guanyierp
         $this->orgi = $data;
         if (!$data) return false;
         if (!is_array($data)) return false;
-        if (!isset($data['success'])) return false;
-        if (!$data['success']) {
-            $this->setErr(isset($data['errorDesc']) ? $data['errorDesc'] : true, isset($data['errorCode']) ? $data['errorCode'] : 500);
-        }
         $this->setOK();
         if (isset($data['total'])) $this->set('total', $data['total']);
         return $filed && isset($data[$filed]) ? $data[$filed] : $data;
     }
 
-    //获取店铺信息
-    public function getShop($data = [], $key = 'shops')
-    {
-        return  $this->getTo('gy.erp.shop.get', $data, $key);
-    }
-
-    // 供应商查询
-    public function getSupplier($data = [], $key = 'supplier_list')
-    {
-        return  $this->getTo('gy.erp.supplier.get', $data, $key);
-    }
-
-    // 会员查询
-    public function getVip($data = [], $key = 'vips')
-    {
-        return  $this->getTo('gy.erp.vip.get', $data, $key);
-    }
-
-    // 获取库存
-    public function getStock($data = [], $key = 'stocks')
-    {
-        return  $this->getTo('gy.erp.new.stock.get', $data, $key);
-    }
-
-
-
-    // 获取某个指定商品指定仓库库存
-    public function getItemStock($warehouse_code, $item_code)
-    {
-        $data['page_no'] = 1;
-        $data['page_size'] = 1;
-        $data['warehouse_code'] = $warehouse_code;
-        $data['item_code'] = $item_code;
-        $result = $this->getStock($data);
-        if (!$result || !$result[0]) return false;
-        if (!isset($result[0]['qty'])) return 0;
-        return $result[0]['qty'];
-    }
-
-
-    // 通过结算单设置库存
-    public function setStock($data = [], $key = null)
-    {
-        return  $this->getTo('gy.erp.stock.count.add', $data, $key);
-    }
-
-    // 获取某个指定商品指定仓库库存，不允许负数
-    public function setItemStock($warehouse_code, $item_code, $qry, $note = null)
-    {
-        $data = [];
-        $data['warehouse_code'] = $warehouse_code;
-        $data['note'] = $note;
-        if (is_array($item_code)) {
-            $data['details'] = $item_code;
-        } else {
-            $data['details'] = array(
-                array(
-                    'item_code' => $item_code,
-                    'qty'   => $qry
-                )
-            );
-        }
-        return $this->setStock($data);
-    }
-
-
-    // 调整仓库库存
-    public function adjustItemStock($warehouse_code, $item_code, $qry, $note = null)
-    {
-        $data = [];
-        $data['warehouse_code'] = $warehouse_code;
-        $data['note'] = $note;
-        if (is_array($item_code)) {
-            $data['detail_list'] = $item_code;
-        } else {
-            $data['detail_list'] = array(
-                array(
-                    'item_code' => $item_code,
-                    'qty'   => $qry
-                )
-            );
-        }
-        return $this->adjustStock($data);
-    }
-
-
-    // 通过调整单设置库存
-    public function adjustStock($data = [], $key = null)
-    {
-        return  $this->getTo('gy.erp.stock.adjust.add', $data, $key);
-    }
-
-
-    public function sign()
-    {
-        if (empty($this->data)) {
-            return '';
-        }
-        $data = $this->jsonEncodeCh($this->data);
-        $this->data['sign'] = strtoupper(md5($this->config['secret'] . $data . $this->config['secret']));
-        return $this->data['sign'];
-    }
 
     public function jsonEncodeCh($arr)
     {
@@ -215,40 +141,25 @@ class guanyierp
             $this->setErr('Data is null', 400);
             return false;
         }
-        if (!isset($this->data['method'])) {
-            $this->setErr('Method is null', 400);
+        if (!$this->path) {
+            $this->setErr('Path is null', 400);
             return false;
         }
-        if (!isset($this->data['appkey'])) {
-            $this->data['appkey'] = $this->config['appkey'];
+        $this->config = $this->get('config');
+        $this->cookie = $this->config['Cookie'];
+        if (!$this->cookie) {
+            $this->setErr('Cookie is null', 400);
+            return false;
         }
-        if (!isset($this->data['sessionkey'])) {
-            $this->data['sessionkey'] = $this->config['sessionkey'];
-        }
-        if (is_null($url)) $url = isset($this->config['url']) && $this->config['url'] ? $this->config['url'] : $this->url;
 
-
-        if (!isset($this->data['sign'])) {
-            $this->sign();
-        }
-        if (1) {
-            $body =  $this->url('POST', $url, urlencode($this->jsonEncodeCh($this->data)), ['header' => ['Content-Type:text/json;charset=utf-8']]);
-        } else {
-            $data_string = $this->jsonEncodeCh($this->data);
-            echo 'request: ' . $data_string . "\n";
-            $data_string = urlencode($data_string);
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                'Content-Type:text/json;charset=utf-8',
-                'Content-Length:' . strlen($data_string)
-            ));
-            $body = curl_exec($ch);
-            curl_close($ch);
-        }
+        $this->url =  $this->preurl . $this->path."?_dc=".ceil(str_replace('.','',microtime(true))/10);
+        $header = [];
+        $header[] = "Content-Type: application/x-www-form-urlencoded; charset=UTF-8";
+        $header[] = "Origin: " . $this->preurl;
+        $header[] = "Referer: " . $this->url;
+        $header[] = "Cookie: " . $this->cookie;
+        if(isset($this->config['User-Agent']) && $this->config['User-Agent'])$header[] = "User-Agent: " . $this->config['User-Agent'];
+        $body =  $this->url('POST', $this->url, $this->data, ['header' => $header]);
         $meta = json_decode($body, true);
         if (!$meta) {
             $this->setErr('Response is not json format', 500);
