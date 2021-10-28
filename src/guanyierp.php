@@ -11,6 +11,7 @@ class guanyierp
     private $_error; //详细代码信息
     private $_errno; //出错代码编号
     public $orgi; //原始数据
+    public $body;
     public $total; //内容的总数量
 
     /**
@@ -50,6 +51,11 @@ class guanyierp
     public function error($no = false)
     {
         return $this->get($no ? '_errno' : '_error');
+    }
+
+    public function getErr($no = false)
+    {
+        return $this->error($no);
     }
 
     //设置正常状态
@@ -232,7 +238,7 @@ class guanyierp
             $this->sign();
         }
         if (1) {
-            $body =  $this->url('POST', $url, urlencode($this->jsonEncodeCh($this->data)), ['header' => ['Content-Type:text/json;charset=utf-8']]);
+            $this->body =  $this->url('POST', $url, urlencode($this->jsonEncodeCh($this->data)), ['header' => ['Content-Type:text/json;charset=utf-8']]);
         } else {
             $data_string = $this->jsonEncodeCh($this->data);
             echo 'request: ' . $data_string . "\n";
@@ -246,10 +252,10 @@ class guanyierp
                 'Content-Type:text/json;charset=utf-8',
                 'Content-Length:' . strlen($data_string)
             ));
-            $body = curl_exec($ch);
+            $this->body = curl_exec($ch);
             curl_close($ch);
         }
-        $meta = json_decode($body, true);
+        $meta = json_decode($this->body, true);
         if (!$meta) {
             $this->setErr('Response is not json format', 500);
             return false;

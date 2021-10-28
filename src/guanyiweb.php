@@ -12,6 +12,7 @@ class guanyiweb
     private $_error; //详细代码信息
     private $_errno; //出错代码编号
     public $orgi; //原始数据
+    public $body;
     public $total; //内容的总数量
     public $url;
     public $path;
@@ -81,6 +82,12 @@ class guanyiweb
     public function error($no = false)
     {
         return $this->get($no ? '_errno' : '_error');
+    }
+
+
+    public function getErr($no = false)
+    {
+        return $this->error($no);
     }
 
     //设置正常状态
@@ -159,8 +166,8 @@ class guanyiweb
         $header[] = "Referer: " . $this->url;
         $header[] = "Cookie: " . $this->cookie;
         if(isset($this->config['User-Agent']) && $this->config['User-Agent'])$header[] = "User-Agent: " . $this->config['User-Agent'];
-        $body =  $this->url('POST', $this->url, $this->data, ['header' => $header]);
-        $meta = json_decode($body, true);
+        $this->body =  $this->url('POST', $this->url, $this->data, ['header' => $header]);
+        $meta = json_decode($this->body, true);
         if (!$meta) {
             $this->setErr('Response is not json format', 500);
             return false;
