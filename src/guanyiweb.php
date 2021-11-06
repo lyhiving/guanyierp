@@ -233,6 +233,10 @@ class guanyiweb
 
                 curl_setopt($ch, CURLOPT_HTTPHEADER, $extopt['header']);
             }
+            if ($scheme == 'https') { //忽略证书部分
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            } 
             $content = curl_exec($ch);
             curl_close($ch);
             return $content;
