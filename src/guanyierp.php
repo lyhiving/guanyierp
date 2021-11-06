@@ -7,7 +7,7 @@ class guanyierp
     /** 配置文件 */
     public $config = [];
     public $data;
-    public $url = 'https://v2.api.guanyierp.com/rest/erp_open';
+    public $url = 'http://v2.api.guanyierp.com/rest/erp_open';
     private $_error; //详细代码信息
     private $_errno; //出错代码编号
     public $orgi; //原始数据

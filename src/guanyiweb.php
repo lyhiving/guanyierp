@@ -16,6 +16,7 @@ class guanyiweb
     public $total; //内容的总数量
     public $url;
     public $path;
+    public $guanyiauth;
 
 
     public function __construct($config = [])
@@ -23,6 +24,11 @@ class guanyiweb
         if ($config) {
             $this->config($config);
         }
+    }
+
+    public function setAuth($auth){
+        $this->guanyiauth =  $auth;
+        return $auth;
     }
 
     public function config($config){
@@ -38,17 +44,23 @@ class guanyiweb
         return $this;
     }
 
-    public function initWeb($string)
+    public function initWeb($cookie='')
     {
-        if(!$string){
+        if($this->guanyiauth){
+            $cookie = $this->guanyiauth->cache();
+            if (!$cookie) {
+                $cookie = $this->guanyiauth->login();
+            }
+        }
+        if(!$cookie){
             $this->setErr('WEB参数未配备');
             return false;
         }
-        $config = json_decode($string, true);
-        if(isset($config['Cookie'])){
-            $this->config($config);
+        $configs = json_decode($cookie, true);
+        if($configs && isset($configs['Cookie'])){
+            $this->config($configs);
         }else{
-            $this->config($string);
+            $this->config($cookie);
         }
         $config =  $this->get('config');
         if(!isset($config['Cookie'])||!$config['Cookie']){
@@ -106,10 +118,21 @@ class guanyiweb
      */
     public function getTo($method, $data, $filed = null)
     {
+
         $this->data = $data;
         $this->path =  $method;
 
         $result = $this->webPost();
+        if($this->guanyiauth){
+            if(!$this->body && !$result){
+                $cookie = $this->guanyiauth->login();
+                if (!$cookie) {
+                    return $this->handler($result, $filed);
+                }
+                $this->initWeb($cookie);
+                $result = $this->webPost();
+            }
+        }
         return $this->handler($result, $filed);
     }
 
